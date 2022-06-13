@@ -8,42 +8,42 @@ kind_arrays = {
 	['Firaga'] = {'Firaga', 'Firaga II', 'Firaga III'},
 	['Fira'] = {'Fira', 'Fira II'},
 	['Flare'] = {'Flare', 'Flare II'},
-	['FireMixed'] = {'Fire', 'Fire II', 'Firaga', 'Fire III', 'Firaga II', 'Fire IV', 'Firaga III', 'Fire V', 'Firaja', 'Fire VI'},
+	['FireMixed'] = {'Fire', 'Fire II', 'Fire III', 'Fire IV', 'Fire V', 'Firaja', 'Fire VI'},
 	
 	-- Ice
 	['Blizzard'] = {'Blizzard', 'Blizzard II', 'Blizzard III', 'Blizzard IV', 'Blizzard V'},
 	['Blizzaga'] = {'Blizzaga', 'Blizzaga II', 'Blizzaga III'},
 	['Blizzara'] = {'Blizzara', 'Blizzara II'},
 	['Freeze'] = {'Freeze', 'Freeze II'},
-	['BlizzardMixed'] = {'Blizzard', 'Blizzard II', 'Blizzaga', 'Blizzard III', 'Blizzaga II', 'Blizzard IV', 'Blizzaga III', 'Blizzard V', 'Blizzaja', 'Blizzard VI'},
+	['BlizzardMixed'] = {'Blizzard', 'Blizzard II', 'Blizzard III', 'Blizzard IV', 'Blizzard V', 'Blizzaja', 'Blizzard VI'},
 	
 	-- Wind
 	['Aero'] = {'Aero', 'Aero II', 'Aero III', 'Aero IV', 'Aero V'},
 	['Aeroga'] = {'Aeroga', 'Aeroga II', 'Aeroga III'},
 	['Aerora'] = {'Aerora', 'Aerora II'},
 	['Tornado'] = {'Tornado', 'Tornado II'},
-	['AeroMixed'] = {'Aero', 'Aero II', 'Aeroga', 'Aero III', 'Aeroga II', 'Aero IV', 'Aeroga III', 'Aero V', 'Aeroja', 'Aero VI'},
+	['AeroMixed'] = {'Aero', 'Aero II', 'Aero III', 'Aero IV', 'Aero V', 'Aeroja', 'Aero VI'},
 	
 	-- Earth
 	['Stone'] = {'Stone', 'Stone II', 'Stone III', 'Stone IV', 'Stone V'},
 	['Stonega'] = {'Stonega', 'Stonega II', 'Stonega III'},
 	['Stonera'] = {'Stonera', 'Stonera II'},
 	['Quake'] = {'Quake', 'Quake II'},
-	['StoneMixed'] = {'Stone', 'Stone II', 'Stonega', 'Stone III', 'Stonega II', 'Stone IV', 'Stonega III', 'Stone V', 'Stoneja', 'Stone VI'},
+	['StoneMixed'] = {'Stone', 'Stone II', 'Stone III', 'Stone IV', 'Stone V', 'Stoneja', 'Stone VI'},
 	
 	-- Lightning
 	['Thunder'] = {'Thunder', 'Thunder II', 'Thunder III', 'Thunder IV', 'Thunder V'},
 	['Thundaga'] = {'Thundaga', 'Thundaga II', 'Thundaga III'},
 	['Thundara'] = {'Thundara', 'Thundara II'},
 	['Burst'] = {'Burst', 'Burst II'},
-	['ThunderMixed'] = {'Thunder', 'Thunder II', 'Thundaga', 'Thunder III', 'Thundaga II', 'Thunder IV', 'Thundaga III', 'Thunder V', 'Thundaja', 'Thunder VI'},
+	['ThunderMixed'] = {'Thunder', 'Thunder II', 'Thunder III', 'Thunder IV', 'Thunder V', 'Thundaja', 'Thunder VI'},
 	
 	-- Water
 	['Water'] = {'Water', 'Water II', 'Water III', 'Water IV', 'Water V'},
 	['Waterga'] = {'Waterga', 'Waterga II', 'Waterga III'},
 	['Watera'] = {'Watera', 'Watera II'},
 	['Flood'] = {'Flood', 'Flood II'},
-	['WaterMixed'] = {'Water', 'Water II', 'Waterga', 'Water III', 'Waterga II', 'Water IV', 'Waterga III', 'Water V', 'Waterja', 'Water VI'},
+	['WaterMixed'] = {'Water', 'Water II', 'Water III', 'Water IV', 'Water V', 'Waterja', 'Water VI'},
 	
 	-- Dark
 	['Aspir'] = {'Aspir', 'Aspir II', 'Aspir III'},
