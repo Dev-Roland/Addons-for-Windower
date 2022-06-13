@@ -11,12 +11,11 @@ local demoter_arrays = require('DemoterArrays')
 local active = true
 local mixed = false
 local debugMode = false
-local logSource = '[NukeDemoter] '
 
 -- Local logging function for debugMode
-local logger = function(color, message)
-	if debugMode then
-		windower.add_to_chat(color, logSource .. message)
+local logger = function(is_command, color, message)
+	if is_command or (not is_command and debugMode) then
+		windower.add_to_chat(color, '[NukeDemoter] ' .. message)
 	end
 end
 
@@ -42,7 +41,7 @@ windower.register_event('outgoing chunk', function(id, data, modified, injected,
 				
 				-- Return Out if No Kind Array (These are spell kinds we are not demoting)
 				if kind_index == nil then
-					return logger(8, 'The spell "' .. spell.english .. '" is awaiting recast but not demotable...')
+					return logger(false, 8, 'The spell "' .. spell.english .. '" is awaiting recast but not demotable...')
 				end
 				
 				-- Demote Until a Plyaer-Ready-to-Cast Tier is Found
@@ -58,16 +57,16 @@ windower.register_event('outgoing chunk', function(id, data, modified, injected,
 						
 						if player_spells[new_spell.id] then
 							if spell_recasts[new_spell.id] == 0 then
-								logger(8, 'Demoted "' .. spell.english .. '" to "' .. new_spell.english .. '"...')
+								logger(false, 8, 'Demoted "' .. spell.english .. '" to "' .. new_spell.english .. '"...')
 								parsed.Param = new_spell.id -- CREDIT: Masunasu (FFXIAH)
 								return packets.build(parsed) -- CREDIT: Masunasu (FFXIAH)
 							end
 						else
-							logger(8, 'Player does not know "' .. new_spell.english .. '".')
+							logger(false, 8, 'Player does not know "' .. new_spell.english .. '".')
 						end
 					end
 				else
-					return logger(8, 'Cannot demote "' .. spell.english .. '" further...')
+					return logger(false, 8, 'Cannot demote "' .. spell.english .. '" further...')
 				end
 			end
 		end
@@ -85,31 +84,31 @@ windower.register_event('addon command', function(...)
 	
 	if table.contains({'toggle', 'flip', 'switch'}, cmd[1]:lower()) then
 		active = not active
-		windower.add_to_chat(active and green or red, logSource .. 'Spell Demotion ' .. (active and 'Activated' or 'Deactivated'))
+		logger(true, active and green or red, 'Spell Demotion ' .. (active and 'Activated' or 'Deactivated'))
 	elseif table.contains({'on', 'activate', 'enable', 'start', 'begin', 'unpause'}, cmd[1]:lower()) then
 		active = true
-		windower.add_to_chat(green, logSource .. 'Spell Demotion Activated')
+		logger(true, green, 'Spell Demotion Activated')
 	elseif table.contains({'off', 'deactivate', 'disable', 'stop', 'end', 'pause'}, cmd[1]:lower()) then
 		active = false
-		windower.add_to_chat(red, logSource .. 'Spell Demotion Deactivated')
-	elseif table.contains({'mixed', 'mix'}, cmd[1]:lower()) then
+		logger(true, red, 'Spell Demotion Deactivated')
+	elseif table.contains({'mixed', 'mix', 'aoe'}, cmd[1]:lower()) then
 		mixed = not mixed
-		windower.add_to_chat(mixed and green or red, logSource .. 'Mixed Single/AoE Demoting ' .. (mixed and 'Activated' or 'Deactivated'))
-		if mixed then windower.add_to_chat(red, 'WARNING: Only use this mode when it is safe to AoE and recast mitigation is needed.') end
+		logger(true, mixed and green or red, 'T6 Demotion to Nuke-ja ' .. (mixed and 'Activated' or 'Deactivated'))
+		if mixed then logger(true, red, 'WARNING: Only use this mode when it is A) safe to AoE and B) recast mitigation is needed.') end
 	elseif table.contains({'debug', 'debugmode'}, cmd[1]:lower()) then
 		debugMode = not debugMode
-		windower.add_to_chat(grey, logSource.. 'Debug Mode ' .. (active and 'activated' or 'deactivated') .. '...')
+		logger(true, grey, 'Debug Mode ' .. (active and 'activated' or 'deactivated') .. '...')
 	elseif table.contains({'config', 'settings'}, cmd[1]:lower()) then
-        windower.add_to_chat(grey, 'NukeDemoter  settings:')
-        windower.add_to_chat(grey, '    active     - '..tostring(active))
-        windower.add_to_chat(grey, '    mixed      - '..tostring(mixed))
+		logger(true, grey, 'NukeDemoter  settings:')
+		logger(true, grey, '    active     - '..tostring(active))
+		logger(true, grey, '    mixed      - '..tostring(mixed))
 	else
-        windower.add_to_chat(grey, 'NukeDemoter  v' .. _addon.version .. ' commands:')
-        windower.add_to_chat(grey, '//nd [command]')
-        windower.add_to_chat(grey, '    toggle   - Toggles NukeDemoter ON or OFF')
-        windower.add_to_chat(grey, '    mixed    - Demotes nukes to AoE variants based on relative potency (CAUTION!)')
-        windower.add_to_chat(grey, '    help     - Displays this help text')
-        windower.add_to_chat(grey, ' ')
-        windower.add_to_chat(grey, 'NOTE: NukeDemoter will only degrade to known spells and only while it is active.')
+        logger(true, grey, 'NukeDemoter  v' .. _addon.version .. ' commands:')
+        logger(true, grey, '//nd [command]')
+        logger(true, grey, '    toggle   - Toggles NukeDemoter ON or OFF')
+        logger(true, grey, '    mixed    - Demotes T6 nukes to nuke-ja variants (CAUTION!)')
+        logger(true, grey, '    help     - Displays this help text')
+        logger(true, grey, ' ')
+        logger(true, grey, 'NOTE: NukeDemoter will only degrade to known spells and only while it is active.')
 	end
 end)
