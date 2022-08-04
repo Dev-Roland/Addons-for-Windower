@@ -214,7 +214,7 @@ windower.register_event('addon command', function(...)
 		else
 			windower.add_to_chat(red, "[AutoWS] Error: Please specify a WS range [command: "..command..", value:"..value.."]")
 		end
-	elseif command == 'hp' or command == 'hpp' then
+	elseif S{'hp','hpp'}[command] then
 		if value ~= '' then
 			if tonumber(value) >= 0 and tonumber(value) <= 100 then
 				job_settings.minHpp = tonumber(value)
@@ -249,8 +249,8 @@ windower.register_event('addon command', function(...)
 	elseif command == 'debug' then
 		debugMode = not debugMode
 		windower.add_to_chat(grey, "[AutoWS] debugMode set to ["..tostring(debugMode).."]")
-	elseif command == 'config' or command == 'settings' then
-		windower.add_to_chat(grey, 'AutoWS  settings: (' + windower.ffxi.get_player().main_job + ')')
+	elseif S{'config','settings'}[command] then
+		windower.add_to_chat(grey, 'AutoWS  settings: (' .. windower.ffxi.get_player().main_job .. ')')
 		windower.add_to_chat(grey, '    active     - '..tostring(job_settings.active))
 		windower.add_to_chat(grey, '    tpLimit    - '..job_settings.tpLimit)
 		windower.add_to_chat(grey, '    wsName   - '..job_settings.wsName)
