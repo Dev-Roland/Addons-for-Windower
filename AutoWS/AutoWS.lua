@@ -51,6 +51,8 @@ function load_settings()
 	display:text(updateDisplayLine())
 	display:size(10)
 	display:bold(true)
+	display:bg_visible(false)
+	display:stroke_width(3)
 	display:pos(settings.ui.pos.x, settings.ui.pos.y)
 	display:show()
 end
@@ -69,12 +71,12 @@ end
 
 function updateDisplayLine()
 	return display:text(T{
-		'  Status: ' .. colorInText(job_settings.active and 'on' or 'off', job_settings.active and 'green' or 'red'),
+		'Status: ' .. colorInText(job_settings.active and 'on' or 'off', job_settings.active and 'green' or 'red'),
 		'WS: ' .. colorInText(job_settings.wsName, 'yellow'),
 		'Min TP: ' .. colorInText(job_settings.tpLimit, 'yellow'),
-		'Min Mob HP: ' .. colorInText(job_settings.minHpp .. '%', 'red') .. '  ',
-		'Max WS Range: ' .. colorInText(job_settings.wsRange, 'red') .. '  ',
-	}:concat('      '))
+		'Min Mob HP: ' .. colorInText(job_settings.minHpp .. '%', 'red'),
+		'Max WS Range: ' .. colorInText(job_settings.wsRange, 'red'),
+	}:concat('    '))
 end
 
 
@@ -227,7 +229,7 @@ windower.register_event('addon command', function(...)
 		else
 			windower.add_to_chat(red, "[AutoWS] Error: Please specify a mob HPP value [command: "..command..", value:"..value.."]")
 		end
-	elseif command =='uipos' then
+	elseif command == 'uipos' then
 		if value ~= '' then
 			local coords = value:split(' ')
 			if #coords < 2 then
@@ -246,6 +248,13 @@ windower.register_event('addon command', function(...)
 		else
 			windower.add_to_chat(red, "[AutoWS] Error: Please specify UI position [command: "..command..", value:"..value.."]")
 		end
+	elseif S{'uishow','uihide'}[command] then
+		windower.send_command('aws uivisible ' .. (command == 'uishow' and 'true' or 'false'))
+	elseif 'uivisible' == command then
+		local showing = S{'true','show','on'}[value] and true or false
+		settings.ui.visible = showing
+		config.save(settings)
+		display:visible(showing)
 	elseif command == 'debug' then
 		debugMode = not debugMode
 		windower.add_to_chat(grey, "[AutoWS] debugMode set to ["..tostring(debugMode).."]")
