@@ -8,3 +8,5 @@ All command results are saved into a settings file for your current job and are 
 5. `//aws hp [0-100]` Sets AutoWS to only auto-WS if your target is above said HP% threshold.
 6. `//aws range 6` Sets AutoWS to only auto-WS if your target is at or less than said range. Some large mobs can be WS'd from further away, and ranged WS have further range regardless.
 7. `//aws uipos [x] [y]` Moves AutoWS's UI to said position and saves it globally for the character.
+8. `//aws uihide` Hides the addon's UI, useful for screen capturing.
+9. `//aws uishow` Shows the addon's UI.
