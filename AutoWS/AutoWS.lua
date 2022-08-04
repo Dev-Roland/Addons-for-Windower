@@ -9,11 +9,11 @@ _addon.commands = {'autows', 'aws'}
 -------------------------------------------------------------------------------------------------------------------
 
 require('functions')
-local res = require('resources')
-local fsDelay = 3
-local fsTries = 0
-local fsTriesMax = 30
-local debugMode = false
+res = require('resources')
+fsDelay = 3
+fsTries = 0
+fsTriesMax = 30
+debugMode = false
 
 
 
@@ -21,19 +21,15 @@ local debugMode = false
 -- Setup local config
 -------------------------------------------------------------------------------------------------------------------
 
-local config = require('config')
-local settings
+config = require('config')
 defaults = T{
-	active = false,
-	tpLimit = 1000,
-	wsName = '',
-	wsRange = 5,
-	minHpp = 10,
 	ui = T{
 		visible = true,
 		pos = T{x = 20, y = 20}
 	}
 }
+settings = config.load(defaults)
+config.save(settings)
 
 
 
@@ -41,8 +37,8 @@ defaults = T{
 -- Setup local UI
 -------------------------------------------------------------------------------------------------------------------
 
-local texts = require('texts')
-local display = texts.new()
+texts = require('texts')
+display = texts.new()
 
 local colors = T{
 	red = '255,0,0',
@@ -58,11 +54,11 @@ end
 
 function updateDisplayLine()
 	return display:text(T{
-		'  Status: ' .. colorInText(settings.active and 'on' or 'off', settings.active and 'green' or 'red'),
-		'WS: ' .. colorInText(settings.wsName, 'yellow'),
-		'Min TP: ' .. colorInText(settings.tpLimit, 'yellow'),
-		'Min Mob HP: ' .. colorInText(settings.minHpp .. '%', 'red') .. '  ',
-		'Max WS Range: ' .. colorInText(settings.wsRange, 'red') .. '  ',
+		'  Status: ' .. colorInText(job_settings.active and 'on' or 'off', job_settings.active and 'green' or 'red'),
+		'WS: ' .. colorInText(job_settings.wsName, 'yellow'),
+		'Min TP: ' .. colorInText(job_settings.tpLimit, 'yellow'),
+		'Min Mob HP: ' .. colorInText(job_settings.minHpp .. '%', 'red') .. '  ',
+		'Max WS Range: ' .. colorInText(job_settings.wsRange, 'red') .. '  ',
 	}:concat('      '))
 end
 
@@ -72,7 +68,7 @@ end
 -- Check current scenario for AWS triggers
 -------------------------------------------------------------------------------------------------------------------
 
-local checkAwsTriggers = function()
+checkAwsTriggers = function()
 	local player = windower.ffxi.get_player()
 	local playerIsEngaged = player and player.status == 1 or false
 	local target = windower.ffxi.get_mob_by_target('t')
@@ -111,7 +107,7 @@ end
 -- 3000 TP Failsafe for terminated tp change event
 -------------------------------------------------------------------------------------------------------------------
 
-awsFailsafe = function() --IMPORTANT: function:schedule only works on this when it's global... I don't know why
+awsFailsafe = function()
 	local player = windower.ffxi.get_player()
 	local playerIsEngaged = player.status == 1
 	
@@ -270,14 +266,20 @@ end)
 -- Addon hooks for TP and status change events
 -------------------------------------------------------------------------------------------------------------------
 
-local function load_settings()
-	settings = config.load('data\\'..windower.ffxi.get_player().main_job..'.xml', defaults)
-	config.save(settings)
+function load_settings()
+	job_defaults = T{
+		active = false,
+		tpLimit = 1000,
+		wsName = '',
+		wsRange = 5,
+		minHpp = 10,
+	}
+	job_settings = config.load('data\\'..windower.ffxi.get_player().main_job..'.xml', job_defaults)
+	config.save(job_settings)
 	
 	display:text(updateDisplayLine())
 	display:size(10)
 	display:bold(true)
-	display:draggable(false)
 	display:pos(settings.ui.pos.x, settings.ui.pos.y)
 	display:show()
 end
@@ -286,3 +288,10 @@ windower.register_event('tp change', checkAwsTriggers)
 windower.register_event('status change', checkAwsTriggers)
 windower.register_event('load', 'login', 'job change', load_settings)
 windower.register_event('logout', function() display:hide() end)
+
+windower.register_event('mouse', function(type, x, y, delta, blocked)
+	if type == 2 and display:hover(x, y) then
+		settings.ui.pos.x, settings.ui.pos.y = display:pos()
+		config.save(settings)
+	end
+end)
