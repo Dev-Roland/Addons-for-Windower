@@ -1,5 +1,5 @@
 _addon.author = 'RolandJ'
-_addon.version = '1.0.0'
+_addon.version = '0.0.2'
 _addon.commands = {'autows', 'aws'}
 
 
@@ -7,7 +7,6 @@ _addon.commands = {'autows', 'aws'}
 -------------------------------------------------------------------------------------------------------------------
 -- Setup local variables used throughout this lua.
 -------------------------------------------------------------------------------------------------------------------
-
 require('functions')
 res = require('resources')
 fsDelay = 3
@@ -20,7 +19,6 @@ debugMode = false
 -------------------------------------------------------------------------------------------------------------------
 -- Setup local config
 -------------------------------------------------------------------------------------------------------------------
-
 config = require('config')
 defaults = T{
 	ui = T{
@@ -36,15 +34,32 @@ config.save(settings)
 -------------------------------------------------------------------------------------------------------------------
 -- Setup local UI
 -------------------------------------------------------------------------------------------------------------------
-
 texts = require('texts')
 display = texts.new()
 
+function load_settings()
+	job_defaults = T{
+		active = false,
+		tpLimit = 1000,
+		wsName = '',
+		wsRange = 5,
+		minHpp = 10,
+	}
+	job_settings = config.load('data\\'..windower.ffxi.get_player().main_job..'.xml', job_defaults)
+	config.save(job_settings)
+	
+	display:text(updateDisplayLine())
+	display:size(10)
+	display:bold(true)
+	display:pos(settings.ui.pos.x, settings.ui.pos.y)
+	display:show()
+end
+
 local colors = T{
-	red = '255,0,0',
-	white = '255,255,255',
-	green = '0,255,0',
-	yellow = '240,240,0'
+	red    = '255,   0, 0',
+	white  = '255, 255, 255',
+	green  = '  0, 255, 0',
+	yellow = '240, 240, 0'
 }
 
 function colorInText(text, color)
@@ -67,7 +82,6 @@ end
 -------------------------------------------------------------------------------------------------------------------
 -- Check current scenario for AWS triggers
 -------------------------------------------------------------------------------------------------------------------
-
 checkAwsTriggers = function()
 	local player = windower.ffxi.get_player()
 	local playerIsEngaged = player and player.status == 1 or false
@@ -75,17 +89,17 @@ checkAwsTriggers = function()
 	
 	-- Skip AWS inactive OR no target OR player is disengaged
 	if target == nil then return end
-	if not settings.active then return end
+	if not job_settings.active then return end
 	if not playerIsEngaged then return end
 	
 	if debugMode then windower.add_to_chat(8, "[AutoWS] checkAwsTriggers executing...") end
 	
 	-- Standard Auto WS (NOTE: player.status: 0 = disengaged, 1 = engaged)
-	if player.vitals.tp >= settings.tpLimit then
-		if math.sqrt(target.distance) <= settings.wsRange then
-			if target.hpp >= settings.minHpp then
-				if debugMode then windower.add_to_chat(8, "[AutoWS] Attempting to perform "..settings.wsName.." at "..player.vitals.tp.." TP") end
-				windower.send_command('input /ws "' .. settings.wsName .. '" <t>')
+	if player.vitals.tp >= job_settings.tpLimit then
+		if math.sqrt(target.distance) <= job_settings.wsRange then
+			if target.hpp >= job_settings.minHpp then
+				if debugMode then windower.add_to_chat(8, "[AutoWS] Attempting to perform "..job_settings.wsName.." at "..player.vitals.tp.." TP") end
+				windower.send_command('input /ws "' .. job_settings.wsName .. '" <t>')
 			else
 				if debugMode then windower.add_to_chat(8, "[AutoWS] Holding TP, Target HPP < "..target.hpp) end
 			end
@@ -103,10 +117,10 @@ checkAwsTriggers = function()
 end
 
 
+
 -------------------------------------------------------------------------------------------------------------------
 -- 3000 TP Failsafe for terminated tp change event
 -------------------------------------------------------------------------------------------------------------------
-
 awsFailsafe = function()
 	local player = windower.ffxi.get_player()
 	local playerIsEngaged = player.status == 1
@@ -128,10 +142,10 @@ awsFailsafe = function()
 end
 
 
+
 -------------------------------------------------------------------------------------------------------------------
 -- Processing for addon commands (type //aws ingame)
 -------------------------------------------------------------------------------------------------------------------
-
 windower.register_event('addon command', function(...)
 	-- Detect command vs value
 	local commandArgs = {...}
@@ -144,21 +158,21 @@ windower.register_event('addon command', function(...)
 	local grey = 207
 
 	if command:wmatch('toggle|switch|flip') then
-		windower.send_command('aws ' .. (settings.active and 'off' or 'on'))
+		windower.send_command('aws ' .. (job_settings.active and 'off' or 'on'))
 	elseif command:wmatch('on|start|begin|activate|off|stop|end|deactivate') then
 		local activating = command:wmatch('on|start|begin|activate')
-		if (activating and settings.active) or (not activating and not settings.active) then
-			return windower.add_to_chat(red, '[AutoWS] Already ' .. (active and 'activated' or 'deactivated'))
+		if (activating and job_settings.active) or (not activating and not job_settings.active) then
+			return windower.add_to_chat(red, '[AutoWS] Already ' .. (job_settings.active and 'activated' or 'deactivated'))
 		end
-		settings.active = activating
-		config.save(settings)
+		job_settings.active = activating
+		config.save(job_settings)
 		updateDisplayLine()
 		windower.add_to_chat(activating and green or red, '[AutoWS] ' .. (activating and 'Activated' or 'Deactivated'))
 	elseif command == 'tp' then
 		if value ~= '' then
 			if tonumber(value) >= 1000 and tonumber(value) <= 3000 then
-				settings.tpLimit = tonumber(value)
-				config.save(settings)
+				job_settings.tpLimit = tonumber(value)
+				config.save(job_settings)
 				updateDisplayLine()
 				windower.add_to_chat(grey, "[AutoWS] Set TP threshold to ["..value.."]")
 			else
@@ -177,8 +191,8 @@ windower.register_event('addon command', function(...)
 				end
 			end
 			if match then
-				settings.wsName = value
-				config.save(settings)
+				job_settings.wsName = value
+				config.save(job_settings)
 				updateDisplayLine()
 				windower.add_to_chat(grey, "[AutoWS] Set WS name to ["..value.."]")
 			else
@@ -190,8 +204,8 @@ windower.register_event('addon command', function(...)
 	elseif command == 'range' then
 		if value ~= '' then
 			if tonumber(value) >= 0 and tonumber(value) <= 21 then
-				settings.wsRange = tonumber(value)
-				config.save(settings)
+				job_settings.wsRange = tonumber(value)
+				config.save(job_settings)
 				updateDisplayLine()
 				windower.add_to_chat(grey, "[AutoWS] Set WS range to ["..value.."]")
 			else
@@ -203,8 +217,8 @@ windower.register_event('addon command', function(...)
 	elseif command == 'hp' or command == 'hpp' then
 		if value ~= '' then
 			if tonumber(value) >= 0 and tonumber(value) <= 100 then
-				settings.minHpp = tonumber(value)
-				config.save(settings)
+				job_settings.minHpp = tonumber(value)
+				config.save(job_settings)
 				updateDisplayLine()
 				windower.add_to_chat(grey, "[AutoWS] Set mob HPP threshold to ["..value.."]")
 			else
@@ -236,12 +250,12 @@ windower.register_event('addon command', function(...)
 		debugMode = not debugMode
 		windower.add_to_chat(grey, "[AutoWS] debugMode set to ["..tostring(debugMode).."]")
 	elseif command == 'config' or command == 'settings' then
-		windower.add_to_chat(grey, 'AutoWS  settings:')
-		windower.add_to_chat(grey, '    active     - '..tostring(settings.active))
-		windower.add_to_chat(grey, '    tpLimit    - '..settings.tpLimit)
-		windower.add_to_chat(grey, '    wsName   - '..settings.wsName)
-		windower.add_to_chat(grey, '    wsRange   - '..settings.wsRange)
-		windower.add_to_chat(grey, '    minHpp    - '..settings.minHpp)
+		windower.add_to_chat(grey, 'AutoWS  settings: (' + windower.ffxi.get_player().main_job + ')')
+		windower.add_to_chat(grey, '    active     - '..tostring(job_settings.active))
+		windower.add_to_chat(grey, '    tpLimit    - '..job_settings.tpLimit)
+		windower.add_to_chat(grey, '    wsName   - '..job_settings.wsName)
+		windower.add_to_chat(grey, '    wsRange   - '..job_settings.wsRange)
+		windower.add_to_chat(grey, '    minHpp    - '..job_settings.minHpp)
 	elseif command == 'help' then
 		windower.add_to_chat(grey, 'AutoWS  v' .. _addon.version .. ' commands:')
 		windower.add_to_chat(grey, '//aws [options]')
@@ -265,25 +279,6 @@ end)
 -------------------------------------------------------------------------------------------------------------------
 -- Addon hooks for TP and status change events
 -------------------------------------------------------------------------------------------------------------------
-
-function load_settings()
-	job_defaults = T{
-		active = false,
-		tpLimit = 1000,
-		wsName = '',
-		wsRange = 5,
-		minHpp = 10,
-	}
-	job_settings = config.load('data\\'..windower.ffxi.get_player().main_job..'.xml', job_defaults)
-	config.save(job_settings)
-	
-	display:text(updateDisplayLine())
-	display:size(10)
-	display:bold(true)
-	display:pos(settings.ui.pos.x, settings.ui.pos.y)
-	display:show()
-end
-
 windower.register_event('tp change', checkAwsTriggers)
 windower.register_event('status change', checkAwsTriggers)
 windower.register_event('load', 'login', 'job change', load_settings)
