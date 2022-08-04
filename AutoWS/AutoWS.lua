@@ -10,12 +10,6 @@ _addon.commands = {'autows', 'aws'}
 
 require('functions')
 local res = require('resources')
-
---[[local active = true
-local tpLimit = 3000
-local wsName = "Spirits Within"
-local wsRange = 5
-local minHpp = 20]]
 local fsDelay = 3
 local fsTries = 0
 local fsTriesMax = 30
@@ -40,8 +34,6 @@ defaults = T{
 		pos = T{x = 20, y = 20}
 	}
 }
---local settings = config.load(defaults)
---config.save(settings)
 
 
 
@@ -87,7 +79,7 @@ local checkAwsTriggers = function()
 	
 	-- Skip AWS inactive OR no target OR player is disengaged
 	if target == nil then return end
-    if not settings.active then return end
+	if not settings.active then return end
 	if not playerIsEngaged then return end
 	
 	if debugMode then windower.add_to_chat(8, "[AutoWS] checkAwsTriggers executing...") end
@@ -149,17 +141,16 @@ windower.register_event('addon command', function(...)
 	local commandArgs = {...}
 	local command = commandArgs[1] and string.lower(table.remove(commandArgs, 1)) or 'help'
 	local value = table.concat(commandArgs, " ")
-	--windower.add_to_chat(17, "command: "..command.." / value: "..value)
 	
 	-- Prepare chat color definitions
 	local green = 158
 	local red = 123
 	local grey = 207
 
-    if command:wmatch('toggle|switch|flip') then
+	if command:wmatch('toggle|switch|flip') then
 		windower.send_command('aws ' .. (settings.active and 'off' or 'on'))
 	elseif command:wmatch('on|start|begin|activate|off|stop|end|deactivate') then
-        local activating = command:wmatch('on|start|begin|activate')
+		local activating = command:wmatch('on|start|begin|activate')
 		if (activating and settings.active) or (not activating and not settings.active) then
 			return windower.add_to_chat(red, '[AutoWS] Already ' .. (active and 'activated' or 'deactivated'))
 		end
@@ -167,7 +158,7 @@ windower.register_event('addon command', function(...)
 		config.save(settings)
 		updateDisplayLine()
 		windower.add_to_chat(activating and green or red, '[AutoWS] ' .. (activating and 'Activated' or 'Deactivated'))
-    elseif command == 'tp' then
+	elseif command == 'tp' then
 		if value ~= '' then
 			if tonumber(value) >= 1000 and tonumber(value) <= 3000 then
 				settings.tpLimit = tonumber(value)
@@ -180,7 +171,7 @@ windower.register_event('addon command', function(...)
 		else
 			windower.add_to_chat(red, "[AutoWS] Error: Please specify a TP value [command: "..command..", value:"..value.."]")
 		end
-    elseif command == 'ws' then
+	elseif command == 'ws' then
 		if value ~= '' then
 			value = windower.convert_auto_trans(value)
 			local match = false
@@ -200,7 +191,7 @@ windower.register_event('addon command', function(...)
 		else
 			windower.add_to_chat(red, "[AutoWS] Error: Please specify a WS name [command: "..command..", value:"..value.."]")
 		end
-    elseif command == 'range' then
+	elseif command == 'range' then
 		if value ~= '' then
 			if tonumber(value) >= 0 and tonumber(value) <= 21 then
 				settings.wsRange = tonumber(value)
@@ -213,7 +204,7 @@ windower.register_event('addon command', function(...)
 		else
 			windower.add_to_chat(red, "[AutoWS] Error: Please specify a WS range [command: "..command..", value:"..value.."]")
 		end
-    elseif command == 'hp' or command == 'hpp' then
+	elseif command == 'hp' or command == 'hpp' then
 		if value ~= '' then
 			if tonumber(value) >= 0 and tonumber(value) <= 100 then
 				settings.minHpp = tonumber(value)
@@ -249,25 +240,25 @@ windower.register_event('addon command', function(...)
 		debugMode = not debugMode
 		windower.add_to_chat(grey, "[AutoWS] debugMode set to ["..tostring(debugMode).."]")
 	elseif command == 'config' or command == 'settings' then
-        windower.add_to_chat(grey, 'AutoWS  settings:')
-        windower.add_to_chat(grey, '    active     - '..tostring(settings.active))
-        windower.add_to_chat(grey, '    tpLimit    - '..settings.tpLimit)
-        windower.add_to_chat(grey, '    wsName   - '..settings.wsName)
-        windower.add_to_chat(grey, '    wsRange   - '..settings.wsRange)
-        windower.add_to_chat(grey, '    minHpp    - '..settings.minHpp)
-    elseif command == 'help' then
-        windower.add_to_chat(grey, 'AutoWS  v' .. _addon.version .. ' commands:')
-        windower.add_to_chat(grey, '//aws [options]')
-        windower.add_to_chat(grey, '    toggle   - Toggles auto weaponskill ON or OFF')
-        windower.add_to_chat(grey, '    tp       - Sets TP threshold at which to weaponskill')
-        windower.add_to_chat(grey, '    ws       - Sets the weaponskill to use')
-        windower.add_to_chat(grey, '    range    - Sets the max range to weaponskill at')
-        windower.add_to_chat(grey, '    hp       - Sets HPP threshold at which to halt AWS (set to 0 to disable this feature)')
-        windower.add_to_chat(grey, '    config   - Displays the curent AWS settings')
-        windower.add_to_chat(grey, '    help     - Displays this help text')
-        windower.add_to_chat(grey, ' ')
-        windower.add_to_chat(grey, 'NOTE: AutoWS will only automate weaponskills if your status is "Engaged".')
-    else
+		windower.add_to_chat(grey, 'AutoWS  settings:')
+		windower.add_to_chat(grey, '    active     - '..tostring(settings.active))
+		windower.add_to_chat(grey, '    tpLimit    - '..settings.tpLimit)
+		windower.add_to_chat(grey, '    wsName   - '..settings.wsName)
+		windower.add_to_chat(grey, '    wsRange   - '..settings.wsRange)
+		windower.add_to_chat(grey, '    minHpp    - '..settings.minHpp)
+	elseif command == 'help' then
+		windower.add_to_chat(grey, 'AutoWS  v' .. _addon.version .. ' commands:')
+		windower.add_to_chat(grey, '//aws [options]')
+		windower.add_to_chat(grey, '    toggle   - Toggles auto weaponskill ON or OFF')
+		windower.add_to_chat(grey, '    tp       - Sets TP threshold at which to weaponskill')
+		windower.add_to_chat(grey, '    ws       - Sets the weaponskill to use')
+		windower.add_to_chat(grey, '    range    - Sets the max range to weaponskill at')
+		windower.add_to_chat(grey, '    hp       - Sets HPP threshold at which to halt AWS (set to 0 to disable this feature)')
+		windower.add_to_chat(grey, '    config   - Displays the curent AWS settings')
+		windower.add_to_chat(grey, '    help     - Displays this help text')
+		windower.add_to_chat(grey, ' ')
+		windower.add_to_chat(grey, 'NOTE: AutoWS will only automate weaponskills if your status is "Engaged".')
+	else
 		windower.add_to_chat(red, '[AutoWs] "'..command..'" is not a valid command. Listing commands...')
 		windower.send_command('aws help')
 	end
@@ -293,4 +284,5 @@ end
 
 windower.register_event('tp change', checkAwsTriggers)
 windower.register_event('status change', checkAwsTriggers)
-windower.register_event('load', 'job change', load_settings)
+windower.register_event('load', 'login', 'job change', load_settings)
+windower.register_event('logout', function() display:hide() end)
