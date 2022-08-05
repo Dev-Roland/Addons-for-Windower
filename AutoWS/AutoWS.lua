@@ -102,9 +102,6 @@ checkAwsTriggers = function()
 	local playerIsEngaged = player and player.status == 1 or false
 	local target = windower.ffxi.get_mob_by_target('t')
 	
-	--print(windower.ffxi.get_mob_by_target('me').model_size + (res.weapon_skills[35].range * range_mult[res.weapon_skills[35].range]) + target.model_size)
-	--t.model_size + ability_distance * range_mult[ability_distance] + s.model_size
-	
 	-- Skip AWS inactive OR no target OR player is disengaged
 	if target == nil then return end
 	if not job_settings.active then return end
@@ -127,11 +124,12 @@ checkAwsTriggers = function()
 	end
 	
 	-- 3000 TP Failsafe (tp change event stops firing @ 3000 TP, status change only fires once)
-	if player.vitals.tp == 3000 then
+	-- Should no longer be necessary due to the newly added attack/ranged-attack action event registration
+	--[[if player.vitals.tp == 3000 then
 		fsTries = fsTries + 1
 		if debugMode then windower.add_to_chat(8, "[AutoWS] Queueing the 3000TP aws failsafe (Try "..fsTries.."/"..fsTriesMax..")") end
 		awsFailsafe:schedule(fsDelay) -- Failsafe: tp change event stops firing @ 3000 TP
-	end
+	end]]
 end
 
 
@@ -332,23 +330,12 @@ windower.register_event('load', 'login', 'job change', load_settings)
 windower.register_event('logout', function() display:hide() end)
 
 windower.register_event('action', function(act)
-	if act.actor_id ~= self.id or not S{1,2,3}[act.category] then
-		return
-	else
-		local target = windower.ffxi.get_mob_by_target('t')
-		checkAwsTriggers()
-		
-		if act.category == 3 then
-			print('distance:',target.distance,'max distance:',windower.ffxi.get_mob_by_target('me').model_size + (res.weapon_skills[act.param].range * range_mult[res.weapon_skills[act.param].range]) + target.model_size)
-		else
-			print('distance', target.distance:sqrt())
-		end
-	end
+	if act.actor_id ~= self.id or not S{1,2}[act.category] then return end
+	checkAwsTriggers()
 end)
 
 windower.register_event('mouse', function(type, x, y, delta, blocked)
-	if type == 2 and display:hover(x, y) then
-		settings.ui.pos.x, settings.ui.pos.y = display:pos()
-		config.save(settings)
-	end
+	if type ~= 2 or not display:hover(x, y) then return end
+	settings.ui.pos.x, settings.ui.pos.y = display:pos()
+	config.save(settings)
 end)
