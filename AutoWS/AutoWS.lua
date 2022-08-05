@@ -13,8 +13,19 @@ fsDelay = 3
 fsTries = 0
 fsTriesMax = 30
 debugMode = false
-
-
+local range_mult = {
+	[2] = 1.55,
+	[3] = 1.490909,
+	[4] = 1.44,
+	[5] = 1.377778,
+	[6] = 1.30,
+	[7] = 1.15,
+	[8] = 1.25,
+	[9] = 1.377778,
+	[10] = 1.45,
+	[11] = 1.454545454545455,
+	[12] = 1.666666666666667,
+}
 
 -------------------------------------------------------------------------------------------------------------------
 -- Setup local config
@@ -55,6 +66,8 @@ function load_settings()
 	display:stroke_width(3)
 	display:pos(settings.ui.pos.x, settings.ui.pos.y)
 	display:show()
+	
+	self = windower.ffxi.get_mob_by_target('me')
 end
 
 local colors = T{
@@ -88,6 +101,9 @@ checkAwsTriggers = function()
 	local player = windower.ffxi.get_player()
 	local playerIsEngaged = player and player.status == 1 or false
 	local target = windower.ffxi.get_mob_by_target('t')
+	
+	--print(windower.ffxi.get_mob_by_target('me').model_size + (res.weapon_skills[35].range * range_mult[res.weapon_skills[35].range]) + target.model_size)
+	--t.model_size + ability_distance * range_mult[ability_distance] + s.model_size
 	
 	-- Skip AWS inactive OR no target OR player is disengaged
 	if target == nil then return end
@@ -150,7 +166,7 @@ end
 -------------------------------------------------------------------------------------------------------------------
 windower.register_event('addon command', function(...)
 	-- Detect command vs value
-	local commandArgs = {...}
+	local commandArgs = T{...}
 	local command = commandArgs[1] and string.lower(table.remove(commandArgs, 1)) or 'help'
 	local value = table.concat(commandArgs, " ")
 	
@@ -186,17 +202,39 @@ windower.register_event('addon command', function(...)
 	elseif command == 'ws' then
 		if value ~= '' then
 			value = windower.convert_auto_trans(value)
-			local match = false
-			for _, ws in pairs(res.weapon_skills) do
-				if ws.en:lower() == value:lower() then
-					match = true
+			local matches = 0
+			local ws
+			for _, res in pairs(res.weapon_skills) do
+				local fuzzyname = res.en:lower():gsub("%s", ""):gsub("%p", "") -- CREDIT: SuperWarp
+				if fuzzyname:startswith(value) or fuzzyname:startswith(commandArgs:concat('')) or res.en:lower() == value:lower() then
+					matches = matches + 1
+					ws = res
 				end
 			end
-			if match then
-				job_settings.wsName = value
-				config.save(job_settings)
-				updateDisplayLine()
-				windower.add_to_chat(grey, "[AutoWS] Set WS name to ["..value.."]")
+			if matches > 0 then
+				if matches == 1 then
+					-- SAVE WS
+					job_settings.wsName = ws.en
+					config.save(job_settings)
+					updateDisplayLine()
+					windower.add_to_chat(grey, "[AutoWS] Set WS name to ["..ws.en.."]")
+					
+					-- HANDLE Range
+					local skill = res.skills[ws.skill]
+					local range = (function()
+						if S{'Archery','Marksmanship'}[skill.en] then
+							local far = S{'Blast Arrow','Empyreal Arrow','Blast Shot','Detonator'}[ws.name]
+							return ws.en == 'Numbing Shot' and 7 or (far and 18 or 16)
+						else
+							return 5
+						end
+					end)()
+					if job_settings.wsRange ~= range then
+						windower.send_command('aws range ' .. range)
+					end
+				else
+					windower.add_to_chat(red, '[AutoWS] Too many results. (' .. matches .. ')')
+				end
 			else
 				windower.add_to_chat(red, '[AutoWS] Unable to find ws "' .. value .. '".')
 			end
@@ -292,6 +330,21 @@ windower.register_event('tp change', checkAwsTriggers)
 windower.register_event('status change', checkAwsTriggers)
 windower.register_event('load', 'login', 'job change', load_settings)
 windower.register_event('logout', function() display:hide() end)
+
+windower.register_event('action', function(act)
+	if act.actor_id ~= self.id or not S{1,2,3}[act.category] then
+		return
+	else
+		local target = windower.ffxi.get_mob_by_target('t')
+		checkAwsTriggers()
+		
+		if act.category == 3 then
+			print('distance:',target.distance,'max distance:',windower.ffxi.get_mob_by_target('me').model_size + (res.weapon_skills[act.param].range * range_mult[res.weapon_skills[act.param].range]) + target.model_size)
+		else
+			print('distance', target.distance:sqrt())
+		end
+	end
+end)
 
 windower.register_event('mouse', function(type, x, y, delta, blocked)
 	if type == 2 and display:hover(x, y) then
